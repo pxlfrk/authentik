@@ -72,10 +72,32 @@ To check if your config has been applied correctly, you can run the following co
 -   `AUTHENTIK_POSTGRESQL__PASSWORD`: Database password, defaults to the environment variable `POSTGRES_PASSWORD`
 -   `AUTHENTIK_POSTGRESQL__USE_PGBOUNCER`: Adjust configuration to support connection to PgBouncer
 -   `AUTHENTIK_POSTGRESQL__USE_PGPOOL`: Adjust configuration to support connection to Pgpool
--   `AUTHENTIK_POSTGRESQL__SSLMODE`: Strictness of ssl verification. Defaults to `verify-ca`
+-   `AUTHENTIK_POSTGRESQL__SSLMODE`: Strictness of ssl verification. Defaults to `"verify-ca"`
 -   `AUTHENTIK_POSTGRESQL__SSLROOTCERT`: CA root for server ssl verification
 -   `AUTHENTIK_POSTGRESQL__SSLCERT`: Path to x509 client certificate to authenticate to server
 -   `AUTHENTIK_POSTGRESQL__SSLKEY`: Path to private key of `SSLCERT` certificate
+
+All PostgreSQL settings, apart from `USE_PGBOUNCER` and `USE_PGPOOL`, support hot-reloading. Adding and removing read replicas doesn't support hot-reloading.
+
+### Read replicas
+
+You can configure additional read replica databases that are used only for read operations. To configure authentik to use replicas, add the settings below to your [configuration file](./configuration.mdx#set-your-environment-variables). If you have multiple replicas, add additional settings for each replica, replacing the default `0` with a unique value for each additional replica.
+
+If read replicas are configured, the main database is not used for reads. If you'd like the main database to be included for reads, add it as a read replica.
+
+The same PostgreSQL settings as described above are used for each read replica.
+
+-   `AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__HOST`
+-   `AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__NAME`
+-   `AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__USER`
+-   `AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PORT`
+-   `AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__PASSWORD`
+-   `AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLMODE`
+-   `AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLROOTCERT`
+-   `AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLCERT`
+-   `AUTHENTIK_POSTGRESQL__READ_REPLICAS__0__SSLKEY`
+
+Note that `USE_PGBOUNCER` and `USE_PGPOOL` are inherited from the main database configuration and are _not_ overridable on read replicas.
 
 ## Redis Settings
 
@@ -85,7 +107,8 @@ To check if your config has been applied correctly, you can run the following co
 -   `AUTHENTIK_REDIS__USERNAME`: Redis server username when not using configuration URL
 -   `AUTHENTIK_REDIS__PASSWORD`: Redis server password when not using configuration URL
 -   `AUTHENTIK_REDIS__TLS`: Redis server connection using TLS when not using configuration URL
--   `AUTHENTIK_REDIS__TLS_REQS`: Redis server TLS connection requirements when not using configuration URL
+-   `AUTHENTIK_REDIS__TLS_REQS`: Redis server TLS connection requirements when not using configuration URL. Defaults to `"none"`. Allowed values are `"none"` and `"required"`.
+-   `AUTHENTIK_REDIS__TLS_CA_CERT`: Path to the Redis server TLS CA root when not using configuration URL. Defaults to `null`.
 
 ## Result Backend Settings
 
@@ -212,6 +235,10 @@ Disable the inbuilt update-checker. Defaults to `false`.
 
     Whether or not to send personal data, like usernames. Defaults to `false`.
 
+-   `AUTHENTIK_ERROR_REPORTING__EXTRA_ARGS`
+
+    Base64-encoded sentry_init arguments. See [Sentry's documentation](https://docs.sentry.io/platforms/python/configuration/options/) for available options.
+
 ### `AUTHENTIK_EMAIL`
 
 -   `AUTHENTIK_EMAIL__HOST`
@@ -272,14 +299,6 @@ Disable the inbuilt update-checker. Defaults to `false`.
     -   Kubeconfig
     -   Existence of a docker socket
 
-### `AUTHENTIK_DEFAULT_TOKEN_LENGTH`
-
-:::info
-Requires authentik 2022.4.1
-:::
-
-Configure the length of generated tokens. Defaults to 60.
-
 ### `AUTHENTIK_LDAP__TASK_TIMEOUT_HOURS`
 
 :::info
@@ -319,6 +338,14 @@ Requires authentik 2023.8.2
 Configure how long reputation scores should be saved for in seconds. Note that this is different than [`AUTHENTIK_REDIS__CACHE_TIMEOUT_REPUTATION`](#redis-settings), as reputation is saved to the database every 5 minutes.
 
 Defaults to `86400`.
+
+### `AUTHENTIK_SESSION_STORAGE`
+
+:::info
+Requires authentik 2024.4
+:::
+
+Configure if the sessions are stored in the cache or the database. Defaults to `cache`. Allowed values are `cache` and `db`. Note that changing this value will invalidate all previous sessions.
 
 ### `AUTHENTIK_WEB__WORKERS`
 

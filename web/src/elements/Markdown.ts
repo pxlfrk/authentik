@@ -78,7 +78,7 @@ export class Markdown extends AKElement {
             const pathName = path.replace(".md", "");
             const link = `docs/${baseName}${pathName}`;
             const url = new URL(link, baseUrl).toString();
-            return `href="${url}" _target="blank"`;
+            return `href="${url}" _target="blank" rel="noopener noreferrer"`;
         });
     }
 
@@ -87,7 +87,7 @@ export class Markdown extends AKElement {
             const parsedContent = matter(this.md);
             const parsedHTML = this.converter.makeHtml(parsedContent.content);
             const replacers = [...this.defaultReplacers, ...this.replacers];
-            this.docTitle = parsedContent.data["title"] ?? "";
+            this.docTitle = parsedContent?.data?.title ?? "";
             this.docHtml = replacers.reduce(
                 (html, replacer) => replacer(html, { path: this.meta }),
                 parsedHTML,
